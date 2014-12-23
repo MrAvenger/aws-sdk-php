@@ -35,6 +35,7 @@ class Credentials implements CredentialsInterface, FromConfigInterface
     const ENV_SECRET = 'AWS_SECRET_KEY';
     const ENV_SECRET_ACCESS_KEY = 'AWS_SECRET_ACCESS_KEY';
     const ENV_PROFILE = 'AWS_PROFILE';
+    const ENV_CREDENTIAL_FILE = 'AWS_CREDENTIAL_FILE';
 
     /** @var string AWS Access Key ID */
     protected $key;
@@ -271,6 +272,13 @@ class Credentials implements CredentialsInterface, FromConfigInterface
             return new static($envKey, $envSecret);
         }
 
+        // Use credentials file from environment variable if available
+        if (($envCredentialsFile = self::getEnvVar(self::ENV_CREDENTIAL_FILE))) {
+            if (file_exists($envCredentialsFile)) {
+                return self::fromIni($config[Options::PROFILE], $envCredentialsFile);
+            }
+        }
+        
         // Use credentials from the ini file in HOME directory if available
         $home = self::getHomeDir();
         if ($home && file_exists("{$home}/.aws/credentials")) {
